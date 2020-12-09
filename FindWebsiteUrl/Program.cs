@@ -15,12 +15,18 @@ namespace FindWebsiteUrl
         static readonly Regex websiteUrlRg = new Regex(@"\b(?:https?://|www\.)\S+\b", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         //temp variable(s)
-        static List<string> values = new List<string>();
+        static List<record> values = new List<record>();
+
+        public class record
+        {
+            public string ProductId { get; set; }
+            public string Url { get; set; }
+            public string WebsiteUrl { get; set; }
+        }
 
         static void Main(string[] args)
         {
             ReadValuesFromFile();
-            ReplaceValuesWithPhoneNumbers();
             WriteWebsiteUrlsToFile();
             Console.WriteLine("Complete");
         }
@@ -32,16 +38,12 @@ namespace FindWebsiteUrl
                 string s;
                 while ((s = sr.ReadLine()) != null)
                 {
-                    values.Add(s);
+                    values.Add(new record {
+                        ProductId = s.Split(',')[0],
+                        Url = s.Substring(s.IndexOf(',')),
+                        WebsiteUrl = FindWebsiteUrl(s)
+                    });
                 }
-            }
-        }
-
-        private static void ReplaceValuesWithPhoneNumbers()
-        {
-            for (int i = 0; i < values.Count; i++)
-            {
-                values[i] = FindWebsiteUrl(values[i]);
             }
         }
 
@@ -49,10 +51,10 @@ namespace FindWebsiteUrl
         {
             using (StreamWriter sw = File.CreateText(writablePath))
             {
-                foreach (string v in values)
+                foreach (record v in values)
                 {
-                    sw.WriteLine(v);
-                    Console.WriteLine($"Writing {v}");
+                    sw.WriteLine($"{v.ProductId},{v.Url},{v.WebsiteUrl}");
+                    Console.WriteLine($"Writing {v.ProductId}");
                 }
             }
         }
